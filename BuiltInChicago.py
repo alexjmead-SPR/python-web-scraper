@@ -88,13 +88,14 @@ getPageX()
 #       grab job tech stack
 #       save those job info into the 3D array
 #       edit for loop to include all pages
-#       save data to long-term storage (Azure Cosmos?)
+#       save data to long-term storage (Azure Cosmos)
+#       retrieve in spreadsheet
 
-#       Capture job type, job title, job id (from site), first seen, last seen, company name, text (HTML), job
-#       link, company link, relevancy score, tech (words relevant to SPR)
+#       Capture job type, job title, job id (from site), first seen, last seen, days active, company name, text
+#       (HTML), job link, company link, relevancy score, tech (words relevant to SPR)
 
 ##################################################
-# Below is the code ""to get the bulleted lists inside a specific job-card
+# Below is the code to get the bulleted lists inside a specific job-card
 ##################################################
 
 # URL = "https://www.builtinchicago.org/jobs"
