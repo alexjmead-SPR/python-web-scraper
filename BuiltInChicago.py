@@ -85,11 +85,13 @@ def getPageX():
 getPageX()
 
 # TODO:
+#       grab job tech stack
 #       save those job info into the 3D array
 #       edit for loop to include all pages
 #       save data to long-term storage (Azure Cosmos?)
 
-#       Capture job name, job title, apply and company link to share with Sales
+#       Capture job type, job title, job id (from site), first seen, last seen, company name, text (HTML), job
+#       link, company link, relevancy score, tech (words relevant to SPR)
 
 ##################################################
 # Below is the code ""to get the bulleted lists inside a specific job-card
