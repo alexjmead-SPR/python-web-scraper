@@ -4,25 +4,43 @@ import time
 import random
 import datetime
 
-job_type_array = [ "remote", "data-analytics", "design-ux", "dev-engineering", "operations", "product", "project-management" ]
-key_words = ["aws", "amazon web services", "azure", "ai", "ml", "python", "c#", "java", "javascript", ".net", "dotnet", "cloud services", "react", "angular", 
+job_type_array = [ "data-analytics", "design-ux", "dev-engineering", "operations", "product", "project-management" ]
+key_words = ["aws", "amazon web services", "azure", " ai ", " ml ", "python", "c#", "java", "javascript", ".net", "dotnet", "cloud services", "react", "angular", 
             "docker", "c++", "api", "kafka", "jupyter", "mysql", "nosql", "testing", "mongodb", "node.js", "oracle", "postgresql", "spring", "salesforce"
             "typescript", "kubernetes", "figma", "django", "vue.js", "html", "ruby", "css", "flask", "swift", "sql server", "google cloud platform", "jenkins",
             "git", "github", "saas", "gitlab", "agile", "scrum", "kanban", "devops", "restful api", "graphql", "spring boot", "spring framework", "hibernate",
             "apache kafka", "rabbitmq", "elasticsearch", "memcached", "tensorflow", "pytorch", "redis", "tensorflow", "pytorch", "keras", "machine learning",
             "artificial intelligence", "computer vision", "big data", "firebase", "spark", "cassandra", "hbase", "couchbase", "express.js", "socket.io", "redux", 
-            "infrastructure", "websockets", "oauth", "json web token", "JWT", "lambda function", "jira", "serverless architecture", "selenium", "confluence", 
+            "infrastructure", "websockets", "oauth", "json web token", " jwt ", "lambda function", "jira", "serverless architecture", "selenium", "confluence", 
             "trello", "slack", "zoom", "microsoft teams", "skype", "intellij", "vs code", "visual studio code", "pycharm", "eclipse", "sublime text", "atom",
-            "vim", "bash", "powershell", "linux", "unix", "xamarin", "microsoft office suite", "m365" ]
+            "vim", "bash", "powershell", "linux", "unix", "xamarin", "microsoft office suite", "m365", "postman", " c ", " r " ]
+
+def analysis_of_html_for_relevancy():
+# Relevency score can be combined with both html .find()'s
+
+    for job_object in scraping_data_results_array:
+        for job_object_element in job_object["raw_html_job_card"]:
+            for key_word in key_words:
+                if job_object_element.text.lower().find(key_word) != -1:
+                    # word is in html
+                    job_object["key_words_found"].add(key_word)
+
+        for job_object_element in job_object["raw_html_job_details"]:
+            for key_word in key_words:
+                if job_object_element.text.lower().find(key_word) != -1:
+                    # word is in html
+                    job_object["key_words_found"].add(key_word)
+
+        # calculate and store relevancy: found key words /  total key words
+        relevancy_score = len(job_object["key_words_found"]) / len(key_words)
+        job_object["relevancy_score"] = relevancy_score
 
 # this method does a get on the built in chicago site to determine
 # the number of pages to loop through for scraping.
 def findNumPages():
     number_of_pages_array = []
     for job_type in range(0, len(job_type_array)):
-        print("job_type: ", job_type_array[job_type])
         URL = f"https://www.builtinchicago.org/jobs/{job_type_array[job_type]}"
-        print(URL)
 
         page = requests.get(URL)
 
@@ -37,27 +55,12 @@ def findNumPages():
             number_of_pages_array.append(number_of_pages)
             # number_of_pages = max(number_of_pages, int(pagination_navigation_button.string.strip()))
 
-    print("Number of Pages:", number_of_pages_array)
+    # print("Number of Pages:", number_of_pages_array)
     return number_of_pages_array
 
 num_pages_array = findNumPages()
-scraping_data_results = {
-    "job_id" : [],
-    "job_type": job_type_array,
-    "job_title": [],
-    "company_name" : [],
-    "job_link" : [],
-    "company_link": [],
-    "first_seen": [],
-    "last_seen": [],
-    "days_active": [],
-    "raw_html": [],
-    "relevancy_score": [],
-    "key_words_found": [],
-    "is_active": [],
-}
+scraping_data_results_array = []
 
-# print(scraping_data_results)
 
 def getPageX():
     for job_type in range(0, len(job_type_array)):
@@ -72,12 +75,30 @@ def getPageX():
             soup = BeautifulSoup(page.content, "html.parser")
 
             results = soup.find(id="jobs-list")
-            scraping_data_results["raw_html"].append(results)
 
             # search results top & bottom jobs section:
             job_elements = results.find_all("div", class_="position-relative job-bounded-responsive border rounded-3 border-gray-02 position-relative bg-white p-md")
 
             for job_element in job_elements:
+                scraping_data_results_object = {
+                    "job_id" : [],
+                    "job_type": job_type_array[job_type],
+                    "job_title": [],
+                    "company_name" : [],
+                    "job_link" : [],
+                    "company_link": [],
+                    "first_seen": [],
+                    "last_seen": [],
+                    "days_active": [],
+                    "raw_html_job_card": [],
+                    "raw_html_job_details": [],
+                    "relevancy_score": [],
+                    "key_words_found": set(),
+                    "is_active": [],
+                }
+
+                scraping_data_results_object["raw_html_job_card"] = job_element
+
                 time_delay = random.randrange(random.randrange(15,17), random.randrange(30,40))
                 print("Inner time delay:", time_delay)
                 time.sleep(time_delay)
@@ -90,26 +111,36 @@ def getPageX():
                 company_url = "https://www.builtinchicago.org" + employer_link
                 job_id_element = apply_url[-6:]
             
-                scraping_data_results["job_title"] = job_title_element
-                scraping_data_results["company_name"] = company_name_element
-                scraping_data_results["job_link"] = apply_url
-                scraping_data_results["company_link"] = company_url
-                scraping_data_results["job_id"] = job_id_element
-                scraping_data_results["is_active"] = True
+                scraping_data_results_object["job_title"] = job_title_element.text
+                scraping_data_results_object["company_name"] = company_name_element.text
+                scraping_data_results_object["job_link"] = apply_url
+                scraping_data_results_object["company_link"] = company_url
+                scraping_data_results_object["job_id"] = job_id_element
+                scraping_data_results_object["is_active"] = True
+
+                scraping_data_results_array.append(scraping_data_results_object)
+
+                analysis_of_html_for_relevancy()
+
                 print(job_title_element.text)
                 print(company_name_element.text)
                 print(apply_url)
                 print(company_url)
                 print(job_id_element)
+                print("array: ", scraping_data_results_array)
                 print()
 
-                for job_id in scraping_data_results["job_id"]:
-                    if job_id.find(job_id_element) != -1:
-                        # job_id already exists
-                        scraping_data_results["last_seen"] = datetime.now()
-                    else:
-                        # job_id DNE
-                        scraping_data_results["first_seen"] = datetime.now()
+                # old exist -> update last seen to today
+                # old DNE - > update first and last seen to today
+
+                # # want to loop pre-existing DB record, NOT new list
+                # for job_id in scraping_data_results["job_id"]: 
+                #     if job_id.find(job_id_element) != -1:
+                #         # job_id already exists
+                #         scraping_data_results["last_seen"] = datetime.now()
+                #     else:
+                #         # job_id DNE
+                #         scraping_data_results["first_seen"] = datetime.now()
 
 
 
@@ -129,12 +160,12 @@ def getPageX():
                 company_url = "https://www.builtinchicago.org" + employer_link
                 job_id_element = apply_url[-6:]
 
-                scraping_data_results["job_title"] = job_title_element
-                scraping_data_results["company_name"] = company_name_element
-                scraping_data_results["job_link"] = apply_url
-                scraping_data_results["company_link"] = company_url
-                scraping_data_results["job_id"] = job_id_element
-                scraping_data_results["is_active"] = True
+                scraping_data_results_object["job_title"] = job_title_element
+                scraping_data_results_object["company_name"] = company_name_element
+                scraping_data_results_object["job_link"] = apply_url
+                scraping_data_results_object["company_link"] = company_url
+                scraping_data_results_object["job_id"] = job_id_element
+                scraping_data_results_object["is_active"] = True
                 print(job_title_element.text)
                 print(company_name_element.text)
                 print(apply_url)
@@ -142,35 +173,27 @@ def getPageX():
                 print(job_id_element)
                 print()
 
-                for job_id in scraping_data_results["job_id"]:
-                    if job_id.find(job_id_element) != -1:
-                        # job_id already exists
-                        scraping_data_results["last_seen"] = datetime.now()
-                    else:
-                        # job_id DNE
-                        scraping_data_results["first_seen"] = datetime.now()
+                # # want to loop pre-existing DB record, NOT new list
+                # for job_id in scraping_data_results["job_id"]:
+                #     if job_id.find(job_id_element) != -1:
+                #         # job_id already exists
+                #         scraping_data_results["last_seen"] = datetime.now()
+                #     else:
+                #         # job_id DNE
+                #         scraping_data_results["first_seen"] = datetime.now()
 
 
 getPageX()
 
-def analysis_of_html_for_relevancy():
-    for job_html in scraping_data_results["raw_html"]:
-        words_to_add = []
-        for job_html_element in job_html:
-            for key_word in key_words:
-                if job_html_element.find(key_word) != -1:
-                    # word is in html
-                    scraping_data_results["key_words_found"] = words_to_add.append(key_word)
-    
-        # calculate and store relevancy: found key words /  total key words
-        relevancy_score = len(words_to_add) / len(key_words)
-        scraping_data_results["relevancy_score"] = relevancy_score
+
+
+
         
 
 
 # TODO:
 #       grab job tech stack
-#       save those job info into the 3D array
+#       save those job info into the dictionary
 #       edit for loop to include all pages
 #       save data to long-term storage (Azure Cosmos)
 #       retrieve in spreadsheet
