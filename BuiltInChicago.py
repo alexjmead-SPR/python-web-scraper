@@ -8,18 +8,18 @@ import azure.cosmos.exceptions as exceptions
 from azure.cosmos import CosmosClient
 import os
 
-RES_GROUP=BuiltInChicagoProject
-ACCT_NAME=builtin-chicago
-export ACCOUNT_URI=$(az cosmosdb show --resource-group $RES_GROUP --name $ACCT_NAME --query documentEndpoint --output tsv)
-export ACCOUNT_KEY=$(az cosmosdb list-keys --resource-group $RES_GROUP --name $ACCT_NAME --query primaryMasterKey --output tsv)
 
-URL = os.environ['https://builtin-chicago.documents.azure.com:443/']
-KEY = os.environ['JVo5kxxqB4lxWojaM8Ihi89WIh6MwJEx8an0OpSm37mIM8NF4JiXXzzp9Vyh05QDGaHGPE1yiceMACDbecJfXg==']
+URL = os.environ["https://builtin-chicago.documents.azure.com:443/"]
+KEY = os.environ["JVo5kxxqB4lxWojaM8Ihi89WIh6MwJEx8an0OpSm37mIM8NF4JiXXzzp9Vyh05QDGaHGPE1yiceMACDbecJfXg=="]
 client = CosmosClient(URL, credential=KEY)
-DATABASE_NAME = 'builtin-chicago'
+DATABASE_NAME = "builtin-chicago"
 database = client.get_database_client(DATABASE_NAME)
-CONTAINER_NAME = 'BuiltInChicagoContainer'
-container = database.get_container_client(CONTAINER_NAME)
+CONTAINER_NAME = "BuiltInChicagoContainer"
+try: 
+    container = database.get_container_client(CONTAINER_NAME)
+except:
+    print(-1)
+
 print(container)
 
 job_type_array = [ "data-analytics", "design-ux", "dev-engineering", "operations", "product", "project-management" ]
