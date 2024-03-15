@@ -3,15 +3,33 @@ from bs4 import BeautifulSoup
 import time
 import random
 import datetime
+import azure.cosmos.cosmos_client as cosmos_client
+import azure.cosmos.exceptions as exceptions
+from azure.cosmos import CosmosClient
+import os
+
+RES_GROUP=BuiltInChicagoProject
+ACCT_NAME=builtin-chicago
+export ACCOUNT_URI=$(az cosmosdb show --resource-group $RES_GROUP --name $ACCT_NAME --query documentEndpoint --output tsv)
+export ACCOUNT_KEY=$(az cosmosdb list-keys --resource-group $RES_GROUP --name $ACCT_NAME --query primaryMasterKey --output tsv)
+
+URL = os.environ['https://builtin-chicago.documents.azure.com:443/']
+KEY = os.environ['JVo5kxxqB4lxWojaM8Ihi89WIh6MwJEx8an0OpSm37mIM8NF4JiXXzzp9Vyh05QDGaHGPE1yiceMACDbecJfXg==']
+client = CosmosClient(URL, credential=KEY)
+DATABASE_NAME = 'builtin-chicago'
+database = client.get_database_client(DATABASE_NAME)
+CONTAINER_NAME = 'BuiltInChicagoContainer'
+container = database.get_container_client(CONTAINER_NAME)
+print(container)
 
 job_type_array = [ "data-analytics", "design-ux", "dev-engineering", "operations", "product", "project-management" ]
-key_words = ["aws", "amazon web services", "azure", " ai ", " ml ", "python", "c#", "java", "javascript", ".net", "dotnet", "cloud services", "react", "angular", 
+key_words = ["aws", "amazon web services", "azure", " ai ", " ml ", "python", "c#", "java", "javascript", ".net", "dotnet", "cloud services", "react", "angular",
             "docker", "c++", "api", "kafka", "jupyter", "mysql", "nosql", "testing", "mongodb", "node.js", "oracle", "postgresql", "spring", "salesforce"
             "typescript", "kubernetes", "figma", "django", "vue.js", "html", "ruby", "css", "flask", "swift", "sql server", "google cloud platform", "jenkins",
             "git", "github", "saas", "gitlab", "agile", "scrum", "kanban", "devops", "restful api", "graphql", "spring boot", "spring framework", "hibernate",
             "apache kafka", "rabbitmq", "elasticsearch", "memcached", "tensorflow", "pytorch", "redis", "tensorflow", "pytorch", "keras", "machine learning",
-            "artificial intelligence", "computer vision", "big data", "firebase", "spark", "cassandra", "hbase", "couchbase", "express.js", "socket.io", "redux", 
-            "infrastructure", "websockets", "oauth", "json web token", " jwt ", "lambda function", "jira", "serverless architecture", "selenium", "confluence", 
+            "artificial intelligence", "computer vision", "big data", "firebase", "spark", "cassandra", "hbase", "couchbase", "express.js", "socket.io", "redux",
+            "infrastructure", "websockets", "oauth", "json web token", " jwt ", "lambda function", "jira", "serverless architecture", "selenium", "confluence",
             "trello", "slack", "zoom", "microsoft teams", "skype", "intellij", "vs code", "visual studio code", "pycharm", "eclipse", "sublime text", "atom",
             "vim", "bash", "powershell", "linux", "unix", "xamarin", "microsoft office suite", "m365", "postman", " c ", " r " ]
 
@@ -110,7 +128,7 @@ def getPageX():
                 employer_link = job_element.find("a", class_="mb-sm d-inline-flex align-items-center text-pretty-blue link-visited-color z-1")["href"]
                 company_url = "https://www.builtinchicago.org" + employer_link
                 job_id_element = apply_url[-6:]
-            
+
                 scraping_data_results_object["job_title"] = job_title_element.text
                 scraping_data_results_object["company_name"] = company_name_element.text
                 scraping_data_results_object["job_link"] = apply_url
@@ -134,7 +152,7 @@ def getPageX():
                 # old DNE - > update first and last seen to today
 
                 # # want to loop pre-existing DB record, NOT new list
-                # for job_id in scraping_data_results["job_id"]: 
+                # for job_id in scraping_data_results["job_id"]:
                 #     if job_id.find(job_id_element) != -1:
                 #         # job_id already exists
                 #         scraping_data_results["last_seen"] = datetime.now()
@@ -188,7 +206,7 @@ getPageX()
 
 
 
-        
+
 
 
 # TODO:
