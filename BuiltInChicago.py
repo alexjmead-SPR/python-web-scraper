@@ -7,20 +7,25 @@ import azure.cosmos.cosmos_client as cosmos_client
 import azure.cosmos.exceptions as exceptions
 from azure.cosmos import CosmosClient
 import os
+import subprocess
+
+subprocess.run(["./dbinit.sh", "arguments"], shell=True)
 
 
-URL = os.environ["https://builtin-chicago.documents.azure.com:443/"]
-KEY = os.environ["JVo5kxxqB4lxWojaM8Ihi89WIh6MwJEx8an0OpSm37mIM8NF4JiXXzzp9Vyh05QDGaHGPE1yiceMACDbecJfXg=="]
-client = CosmosClient(URL, credential=KEY)
-DATABASE_NAME = "builtin-chicago"
+URL = os.getenv('ACCOUNT_URI')
+KEY = os.getenv('ACCOUNT_KEY')
+client = CosmosClient.from_connection_string('AccountEndpoint=https://builtin-chicago.documents.azure.com:443/;AccountKey=JVo5kxxqB4lxWojaM8Ihi89WIh6MwJEx8an0OpSm37mIM8NF4JiXXzzp9Vyh05QDGaHGPE1yiceMACDbecJfXg==;')
+DATABASE_NAME = "BuiltInChicagoDB"
 database = client.get_database_client(DATABASE_NAME)
 CONTAINER_NAME = "BuiltInChicagoContainer"
-try: 
-    container = database.get_container_client(CONTAINER_NAME)
-except:
-    print(-1)
+container = database.get_container_client(CONTAINER_NAME)
 
-print(container)
+current_db_records = []
+
+query = "SELECT * FROM BuiltInChicagoContainer"
+for item in container.query_items(query=query, enable_cross_partition_query=True, max_item_count=1):
+    current_db_records.append(item)
+
 
 job_type_array = [ "data-analytics", "design-ux", "dev-engineering", "operations", "product", "project-management" ]
 key_words = ["aws", "amazon web services", "azure", " ai ", " ml ", "python", "c#", "java", "javascript", ".net", "dotnet", "cloud services", "react", "angular",
@@ -139,6 +144,11 @@ def getPageX():
                 scraping_data_results_array.append(scraping_data_results_object)
 
                 analysis_of_html_for_relevancy()
+
+                print('*' * 20)
+                print(scraping_data_results_object)
+
+                container.upsert_item(scraping_data_results_object)
 
                 print(job_title_element.text)
                 print(company_name_element.text)
